@@ -1,57 +1,54 @@
 from django.contrib import admin
-from .models import Category, Location, Post
 
-# Настройка админ-панели для модели Category
-class CategoryAdmin(admin.ModelAdmin):
-    list_display = ('title', 'slug', 'is_published', 'created_at')
-    list_filter = ('is_published',)
-    search_fields = ('title', 'description')
+from .models import Post, Category, Location, Comment
 
-    fieldsets = (
-        (None, {
-            'fields': ('title', 'slug', 'description', 'is_published')
-        }),
-        ('Дата создания', {
-            'fields': ('created_at',)
-        }),
-    )
+admin.site.empty_value_display = 'Не задано'
 
-# Настройка админ-панели для модели Location
-class LocationAdmin(admin.ModelAdmin):
-    list_display = ('name', 'is_published', 'created_at')
-    list_filter = ('is_published',)
-    search_fields = ('name',)
 
-    fieldsets = (
-        (None, {
-            'fields': ('name', 'is_published')
-        }),
-        ('Дата создания', {
-            'fields': ('created_at',)
-        }),
-    )
+class PostInline(admin.StackedInline):
+    model = Post
+    extra = 0
 
-# Настройка админ-панели для модели Post
+
+@admin.register(Post)
 class PostAdmin(admin.ModelAdmin):
-    list_display = ('title', 'author', 'pub_date', 'is_published', 'created_at')
-    list_filter = ('is_published', 'author', 'category', 'location')
-    search_fields = ('title', 'text')
+    empty_value_display = 'Не задано'
 
-    fieldsets = (
-        (None, {
-            'fields': ('title', 'text', 'author', 'category', 'location', 'is_published')
-        }),
-        ('Дата публикации', {
-            'fields': ('pub_date', 'created_at')
-        }),
+    list_display = (
+        'title',
+        'text',
+        'pub_date',
+        'author',
+        'location',
+        'category',
+        'is_published'
     )
+    list_editable = (
+        'is_published',
+        'category',
+        'pub_date'
+    )
+    search_fields = ('title',)
+    list_filter = ('category',)
+    list_display_links = ('title',)
 
-# Регистрация моделей в админ-панели
-admin.site.register(Category, CategoryAdmin)
-admin.site.register(Location, LocationAdmin)
-admin.site.register(Post, PostAdmin)
 
-# Перевод названий на русский язык
-admin.site.site_header = "Блог"
-admin.site.site_title = "Администрирование блога"
-admin.site.index_title = "Управление блогом"
+@admin.register(Category)
+class CategoryAdmin(admin.ModelAdmin):
+    inlines = (
+        PostInline,)
+
+
+@admin.register(Location)
+class LocationAdmin(admin.ModelAdmin):
+    inlines = (
+        PostInline,)
+
+
+@admin.register(Comment)
+class CommentAdmin(admin.ModelAdmin):
+    list_display = (
+        'text',
+        'author',
+        'post'
+    )
